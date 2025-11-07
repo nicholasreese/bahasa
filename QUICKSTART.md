@@ -13,7 +13,7 @@ python app.py
 ```
 
 ### Step 3: Open in Browser
-Navigate to: **http://localhost:5000**
+Navigate to: **http://localhost:5005**
 
 ---
 

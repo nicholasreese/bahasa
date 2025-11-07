@@ -30,7 +30,7 @@ python app.py
 
 2. Open your web browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:5005
 ```
 
 3. You're ready to start learning!
@@ -107,7 +107,7 @@ You can easily customize:
 
 **Problem**: Application won't start
 - Make sure Flask is installed: `pip install Flask`
-- Check that port 5000 is not in use by another application
+- Check that port 5005 is not in use by another application
 
 **Problem**: Database errors
 - Delete `vocabulary.db` and restart the app to recreate it

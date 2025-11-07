@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 import os
+import csv
+import csv
 
 app = Flask(__name__)
 
@@ -85,6 +87,51 @@ def delete_word(word_id):
     conn.commit()
     conn.close()
     return jsonify({'success': True, 'message': 'Word deleted successfully'})
+
+@app.route('/upload_csv')
+def upload_csv_page():
+    """Page to upload CSV file"""
+    return render_template('upload_csv.html')
+
+@app.route('/api/upload_csv', methods=['POST'])
+def upload_csv():
+    """API endpoint to upload and process CSV file"""
+    if 'csvFile' not in request.files:
+        return jsonify({'success': False, 'message': 'No file part'}), 400
+    
+    file = request.files['csvFile']
+    
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+        
+    if file and file.filename.endswith('.csv'):
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.reader(decoded_file)
+            
+            words_to_add = []
+            for i, row in enumerate(reader):
+                if len(row) == 2:
+                    english = row[0].strip()
+                    indonesian = row[1].strip()
+                    if english and indonesian:
+                        words_to_add.append((indonesian, english))
+                else:
+                    return jsonify({'success': False, 'message': f'Invalid row format at line {i+1}. Expected 2 columns, got {len(row)}'}), 400
+            
+            if not words_to_add:
+                return jsonify({'success': False, 'message': 'No valid words found in CSV'}), 400
+
+            conn = get_db()
+            conn.executemany('INSERT INTO words (indonesian, english) VALUES (?, ?)', words_to_add)
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'success': True, 'message': f'{len(words_to_add)} words added successfully!'})
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Error processing file: {str(e)}'}), 500
+
+    return jsonify({'success': False, 'message': 'Invalid file format. Only CSV files are accepted.'}), 400
 
 if __name__ == '__main__':
     init_db()
