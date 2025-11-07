@@ -41,7 +41,7 @@ async function startQuiz(mode) {
     incorrectAnswers = 0;
     
     // Shuffle words for the quiz
-    shuffledWords = [...words].sort(() => Math.random() - 0.5);
+    shuffledWords = [...words].sort(() => Math.random() - 0.5).slice(0, 20);
     
     // Hide selection, show quiz
     document.getElementById('languageSelection').classList.add('hidden');
