@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Bahasa Indonesian Learning</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎴 Flashcard Practice</h1>
+            <a href="/" class="back-link">← Back to Home</a>
+        </header>
+        
+        <!-- Language Selection -->
+        <div id="languageSelection" class="selection-container">
+            <h2>Choose your practice mode:</h2>
+            <div class="selection-buttons">
+                <button class="btn btn-large btn-indo" id="practiceIndonesianBtn">
+                    🇮🇩 Practice Indonesian<br>
+                    <small>(Show Indonesian, answer in English)</small>
+                </button>
+                <button class="btn btn-large btn-eng" id="practiceEnglishBtn">
+                    🇬🇧 Practice English<br>
+                    <small>(Show English, answer in Indonesian)</small>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Quiz Container -->
+        <div id="quizContainer" class="quiz-container hidden">
+            <div class="progress-bar">
+                <div class="progress-text">
+                    Card <span id="currentCard">1</span> of <span id="totalCards">0</span>
+                </div>
+                <div class="progress-fill-container">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="flashcard">
+                <div class="card-word" id="questionWord"></div>
+                <div class="attempt-indicator">
+                    Attempt <span id="attemptNumber">1</span> of 2
+                </div>
+            </div>
+            
+            <div class="answer-section">
+                <input type="text" id="answerInput" placeholder="Type your answer here..." 
+                       autocomplete="off" class="large-input">
+                <button class="btn btn-primary" id="submitBtn" onclick="checkAnswer()">Submit</button>
+            </div>
+            
+            <div id="feedback" class="feedback hidden"></div>
+            
+            <div id="resultButtons" class="result-buttons hidden">
+                <button class="btn btn-success" onclick="nextCard()">Next Card →</button>
+            </div>
+            
+            <div class="quiz-actions">
+                <button class="btn btn-secondary" onclick="restartQuiz()">Start Over</button>
+            </div>
+        </div>
+        
+        <!-- Results Summary -->
+        <div id="resultsContainer" class="results-container hidden">
+            <h2>🎉 Quiz Complete!</h2>
+            <div class="results-stats">
+                <div class="stat">
+                    <div class="stat-value" id="correctCount">0</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="incorrectCount">0</div>
+                    <div class="stat-label">Incorrect</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="accuracyPercent">0%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="btn btn-primary" onclick="restartQuiz()">Practice Again</button>
+                <a href="/" class="btn btn-secondary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='flashcards.js') }}"></script>
+</body>
+</html>

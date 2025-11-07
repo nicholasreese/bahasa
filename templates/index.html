@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahasa Indonesian Flashcards</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇮🇩 Bahasa Indonesian Learning App 🇬🇧</h1>
+            <p class="subtitle">Learn Indonesian and English with interactive flashcards</p>
+        </header>
+        
+        <div class="menu-cards">
+            <div class="menu-card">
+                <h2>📝 Add Words</h2>
+                <p>Add new Indonesian-English word pairs to your vocabulary</p>
+                <a href="/add_word" class="btn btn-primary">Add Words</a>
+            </div>
+            
+            <div class="menu-card">
+                <h2>🎴 Practice Flashcards</h2>
+                <p>Test your knowledge with interactive flashcards</p>
+                <a href="/flashcards" class="btn btn-success">Start Practice</a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Build your vocabulary one word at a time!</p>
+        </footer>
+    </div>
+</body>
+</html>

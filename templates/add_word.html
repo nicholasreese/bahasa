@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Words - Bahasa Indonesian Flashcards</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Add New Words</h1>
+            <a href="/" class="back-link">← Back to Home</a>
+        </header>
+        
+        <div class="form-container">
+            <form id="addWordForm">
+                <div class="form-group">
+                    <label for="indonesian">Bahasa Indonesian:</label>
+                    <input type="text" id="indonesian" name="indonesian" required 
+                           placeholder="Enter Indonesian word" class="large-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="english">English:</label>
+                    <input type="text" id="english" name="english" required 
+                           placeholder="Enter English meaning" class="large-input">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Add Word</button>
+            </form>
+            
+            <div id="message" class="message hidden"></div>
+        </div>
+        
+        <div class="word-list-container">
+            <h2>Current Vocabulary</h2>
+            <div id="wordList" class="word-list"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Load words on page load
+        loadWords();
+        
+        // Handle form submission
+        document.getElementById('addWordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const indonesian = document.getElementById('indonesian').value.trim();
+            const english = document.getElementById('english').value.trim();
+            
+            try {
+                const response = await fetch('/api/add_word', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ indonesian, english })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Word added successfully!', 'success');
+                    document.getElementById('addWordForm').reset();
+                    loadWords();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding word', 'error');
+            }
+        });
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.className = 'message hidden';
+            }, 3000);
+        }
+        
+        async function loadWords() {
+            try {
+                const response = await fetch('/api/words');
+                const words = await response.json();
+                
+                const wordList = document.getElementById('wordList');
+                wordList.innerHTML = '';
+                
+                if (words.length === 0) {
+                    wordList.innerHTML = '<p class="no-words">No words yet. Add your first word above!</p>';
+                    return;
+                }
+                
+                words.forEach(word => {
+                    const wordItem = document.createElement('div');
+                    wordItem.className = 'word-item';
+                    wordItem.innerHTML = `
+                        <div class="word-content">
+                            <span class="word-indo">${word.indonesian}</span>
+                            <span class="word-separator">→</span>
+                            <span class="word-eng">${word.english}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deleteWord(${word.id})">🗑️</button>
+                    `;
+                    wordList.appendChild(wordItem);
+                });
+            } catch (error) {
+                console.error('Error loading words:', error);
+            }
+        }
+        
+        async function deleteWord(id) {
+            if (!confirm('Are you sure you want to delete this word?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete_word/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Word deleted successfully!', 'success');
+                    loadWords();
+                }
+            } catch (error) {
+                showMessage('Error deleting word', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
