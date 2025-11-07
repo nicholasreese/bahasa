@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Phrases - Bahasa Indonesian Flashcards</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Manage Phrases</h1>
+            <a href="/" class="back-link">← Back to Home</a>
+        </header>
+        
+        <div class="form-container">
+            <form id="addPhraseForm">
+                <h2>Add New Phrase</h2>
+                <div class="form-group">
+                    <label for="indonesianPhraseInput">Bahasa Indonesian Phrase:</label>
+                    <input type="text" id="indonesianPhraseInput" name="indonesian_phrase" required 
+                           placeholder="Enter Indonesian phrase" class="large-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="englishPhraseInput">English Phrase:</label>
+                    <input type="text" id="englishPhraseInput" name="english_phrase" required 
+                           placeholder="Enter English phrase" class="large-input">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Add Phrase</button>
+            </form>
+            
+            <div id="message" class="message hidden"></div>
+        </div>
+        
+        <div class="word-list-container">
+            <h2>Current Phrases</h2>
+            <div id="phraseList" class="word-list"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', loadPhrases);
+
+        document.getElementById('addPhraseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const indonesianPhrase = document.getElementById('indonesianPhraseInput').value.trim();
+            const englishPhrase = document.getElementById('englishPhraseInput').value.trim();
+            
+            try {
+                const response = await fetch('/api/add_phrase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ indonesian_phrase: indonesianPhrase, english_phrase: englishPhrase })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Phrase added successfully!', 'success');
+                    document.getElementById('addPhraseForm').reset();
+                    loadPhrases();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding phrase', 'error');
+            }
+        });
+
+        async function loadPhrases() {
+            try {
+                const response = await fetch('/api/phrases');
+                const phrases = await response.json();
+                
+                const phraseList = document.getElementById('phraseList');
+                phraseList.innerHTML = '';
+                
+                if (phrases.length === 0) {
+                    phraseList.innerHTML = '<p class="no-words">No phrases yet. Add your first phrase above!</p>';
+                    return;
+                }
+                
+                phrases.forEach(phrase => {
+                    const phraseItem = document.createElement('div');
+                    phraseItem.className = 'word-item'; // Reusing word-item style
+                    phraseItem.innerHTML = `
+                        <span><strong>${phrase.indonesian_phrase}</strong> - ${phrase.english_phrase}</span>
+                        <div>
+                            <button class="btn btn-secondary btn-small edit-btn" data-id="${phrase.id}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-btn" data-id="${phrase.id}">Delete</button>
+                        </div>
+                    `;
+                    phraseList.appendChild(phraseItem);
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        const phraseId = e.target.dataset.id;
+                        if (confirm('Are you sure you want to delete this phrase?')) {
+                            try {
+                                const response = await fetch(`/api/delete_phrase/${phraseId}`, {
+                                    method: 'DELETE'
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    showMessage('Phrase deleted successfully!', 'success');
+                                    loadPhrases();
+                                } else {
+                                    showMessage(data.message, 'error');
+                                }
+                            } catch (error) {
+                                showMessage('Error deleting phrase', 'error');
+                            }
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const phraseId = e.target.dataset.id;
+                        const phraseToEdit = phrases.find(p => p.id == phraseId);
+                        if (phraseToEdit) {
+                            const newIndonesian = prompt('Edit Indonesian Phrase:', phraseToEdit.indonesian_phrase);
+                            const newEnglish = prompt('Edit English Phrase:', phraseToEdit.english_phrase);
+                            if (newIndonesian !== null && newEnglish !== null) {
+                                updatePhrase(phraseId, newIndonesian, newEnglish);
+                            }
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error loading phrases:', error);
+                showMessage('Error loading phrases. Please try again.', 'error');
+            }
+        }
+
+        async function updatePhrase(id, indonesian_phrase, english_phrase) {
+            try {
+                const response = await fetch(`/api/edit_phrase/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ indonesian_phrase, english_phrase })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Phrase updated successfully!', 'success');
+                    loadPhrases();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating phrase', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.className = 'message hidden';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

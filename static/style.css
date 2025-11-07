@@ -791,3 +791,20 @@ footer {
         flex-direction: column;
     }
 }
+
+/* Phrase Flashcard Styles */
+.phrase-card .card-question {
+    font-size: 3em; /* Half the current size */
+    text-align: left;
+    width: 100%;
+    margin-bottom: 20px; /* Space between question and answer */
+    color: white;
+}
+
+.phrase-card .card-answer {
+    font-size: 3em; /* Half the current size */
+    text-align: left;
+    width: 100%;
+    margin-top: 20px; /* Space between question and answer */
+    color: white;
+}

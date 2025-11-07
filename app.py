@@ -36,6 +36,25 @@ def init_db():
         ]
         conn.executemany('INSERT INTO words (indonesian, english) VALUES (?, ?)', sample_words)
         conn.commit()
+
+        conn.execute('''
+            CREATE TABLE phrases (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                indonesian_phrase TEXT NOT NULL,
+                english_phrase TEXT NOT NULL
+            )
+        ''')
+        # Add some sample phrases
+        sample_phrases = [
+            ('Apa kabar?', 'How are you?'),
+            ('Baik-baik saja', 'I am fine'),
+            ('Terima kasih banyak', 'Thank you very much'),
+            ('Sama-sama', 'You\'re welcome'),
+            ('Maaf', 'Sorry')
+        ]
+        conn.executemany('INSERT INTO phrases (indonesian_phrase, english_phrase) VALUES (?, ?)', sample_phrases)
+        conn.commit()
+        conn.close()
         conn.close()
 
 @app.route('/')
@@ -132,6 +151,68 @@ def upload_csv():
             return jsonify({'success': False, 'message': f'Error processing file: {str(e)}'}), 500
 
     return jsonify({'success': False, 'message': 'Invalid file format. Only CSV files are accepted.'}), 400
+
+@app.route('/phrase_flashcards')
+def phrase_flashcards():
+    """Phrase flashcards page"""
+    return render_template('phrase_flashcards.html')
+
+@app.route('/api/phrases')
+def get_phrases():
+    """API endpoint to get all phrases"""
+    conn = get_db()
+    cursor = conn.execute('SELECT id, indonesian_phrase, english_phrase FROM phrases')
+    phrases = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(phrases)
+
+@app.route('/manage_phrases')
+def manage_phrases_page():
+    """Page to add, edit, and delete phrases"""
+    return render_template('manage_phrases.html')
+
+@app.route('/api/add_phrase', methods=['POST'])
+def add_phrase():
+    """API endpoint to add a new phrase"""
+    data = request.json
+    indonesian_phrase = data.get('indonesian_phrase', '').strip()
+    english_phrase = data.get('english_phrase', '').strip()
+    
+    if not indonesian_phrase or not english_phrase:
+        return jsonify({'success': False, 'message': 'Both fields are required'}), 400
+    
+    conn = get_db()
+    conn.execute('INSERT INTO phrases (indonesian_phrase, english_phrase) VALUES (?, ?)', (indonesian_phrase, english_phrase))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Phrase added successfully'})
+
+@app.route('/api/edit_phrase/<int:phrase_id>', methods=['PUT'])
+def edit_phrase(phrase_id):
+    """API endpoint to edit an existing phrase"""
+    data = request.json
+    indonesian_phrase = data.get('indonesian_phrase', '').strip()
+    english_phrase = data.get('english_phrase', '').strip()
+    
+    if not indonesian_phrase or not english_phrase:
+        return jsonify({'success': False, 'message': 'Both fields are required'}), 400
+    
+    conn = get_db()
+    conn.execute('UPDATE phrases SET indonesian_phrase = ?, english_phrase = ? WHERE id = ?', (indonesian_phrase, english_phrase, phrase_id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Phrase updated successfully'})
+
+@app.route('/api/delete_phrase/<int:phrase_id>', methods=['DELETE'])
+def delete_phrase(phrase_id):
+    """API endpoint to delete a phrase"""
+    conn = get_db()
+    conn.execute('DELETE FROM phrases WHERE id = ?', (phrase_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'message': 'Phrase deleted successfully'})
 
 if __name__ == '__main__':
     init_db()

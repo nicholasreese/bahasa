@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phrase Flashcards - Bahasa Indonesian Learning</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗣️ Phrase Flashcards</h1>
+            <a href="/" class="back-link">← Back to Home</a>
+        </header>
+        
+        <div class="quiz-container">
+            <div class="flashcard phrase-card">
+                <div class="card-question" id="indonesianPhrase"></div>
+                <br> <!-- Add a line break for spacing -->
+                <div class="card-answer hidden" id="englishPhrase"></div>
+            </div>
+            
+            <div class="quiz-actions">
+                <button class="btn btn-primary" id="revealBtn">Reveal Answer</button>
+                <button class="btn btn-success" id="nextPhraseBtn">Next Phrase →</button>
+                <button class="btn btn-secondary" onclick="window.location.reload()">Restart</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let phrases = [];
+        let currentPhraseIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPhrases();
+            if (phrases.length > 0) {
+                showPhrase();
+            } else {
+                document.getElementById('indonesianPhrase').textContent = "No phrases available. Add some phrases from the home page.";
+                document.getElementById('revealBtn').disabled = true;
+                document.getElementById('nextPhraseBtn').disabled = true;
+            }
+        });
+
+        async function loadPhrases() {
+            try {
+                const response = await fetch('/api/phrases');
+                phrases = await response.json();
+                phrases = phrases.sort(() => Math.random() - 0.5); // Shuffle phrases
+            } catch (error) {
+                console.error('Error loading phrases:', error);
+                alert('Error loading phrases. Please try again.');
+            }
+        }
+
+        function showPhrase() {
+            if (currentPhraseIndex >= phrases.length) {
+                alert('End of phrases! Restarting.');
+                currentPhraseIndex = 0;
+                phrases = phrases.sort(() => Math.random() - 0.5); // Reshuffle for restart
+            }
+            const phrase = phrases[currentPhraseIndex];
+            document.getElementById('indonesianPhrase').textContent = phrase.indonesian_phrase;
+            document.getElementById('englishPhrase').textContent = phrase.english_phrase;
+            document.getElementById('englishPhrase').classList.add('hidden');
+            document.getElementById('revealBtn').textContent = 'Reveal Answer';
+            document.getElementById('revealBtn').disabled = false;
+            document.getElementById('nextPhraseBtn').disabled = true;
+        }
+
+        document.getElementById('revealBtn').addEventListener('click', () => {
+            document.getElementById('englishPhrase').classList.remove('hidden');
+            document.getElementById('revealBtn').disabled = true;
+            document.getElementById('nextPhraseBtn').disabled = false;
+        });
+
+        document.getElementById('nextPhraseBtn').addEventListener('click', () => {
+            currentPhraseIndex++;
+            showPhrase();
+        });
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('revealBtn').disabled) {
+                    document.getElementById('revealBtn').click();
+                } else if (!document.getElementById('nextPhraseBtn').disabled) {
+                    document.getElementById('nextPhraseBtn').click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
